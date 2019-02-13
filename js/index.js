@@ -1,8 +1,8 @@
 class Uczen{
-    constructor(_cost, _perclick){
+    constructor(_cost, _perclick, _posiadani=0){
         this.cost=_cost;
         this.perclick=_perclick;
-        this.posiadani=0;
+        this.posiadani=_posiadani;
     }
     static MPC(a, b, c, d, e) {
         let mpc=1+(a.perclick*a.posiadani+b.perclick*b.posiadani+c.perclick*c.posiadani+d.perclick*d.posiadani+e.perclick*e.posiadani);
@@ -21,10 +21,10 @@ const giru= new Uczen(4000,150);
 const poskrobko= new Uczen(10000, 450);
 //==========
 class Artefakt{
-    constructor(_cost, _persecond){
+    constructor(_cost, _persecond, _posiadani=0){
         this.cost=_cost;
         this.persecond=_persecond;
-        this.posiadani=0;
+        this.posiadani=_posiadani;
     }
 
     static MPS(a,b,c,d,e){
@@ -47,6 +47,7 @@ const INTERVAL=1000;
 //=========
 
 //=====
+let clicks=0;
 let mieczniki=0;
 let mieczniki_per_click=Uczen.MPC(zamojda,maurycy,dominik,giru,poskrobko); //mieczniki co klikniecie
 let mieczniki_per_second=Artefakt.MPS(pilot,haslo,wskazowka,sala,zaplecze); //mieczniki na sekunde
@@ -93,17 +94,69 @@ mPerSecond_box.innerHTML=mieczniki_per_second;
 //==================
 const MainMiecznik=document.querySelector("#mainMiecznik");
 
+let x=mieczniki_per_second/30;
+let interval=setInterval(()=>{
+    mieczniki+=x;
+    updateMieczniki();
+},1000/30);
 //funkcje gry
 function AddPerSec(){
-    mieczniki+=mieczniki_per_second;
-    updateMieczniki();
+    x=mieczniki_per_second/30;
+    clearInterval(interval);
+    interval=setInterval(()=>{
+        mieczniki+=x;
+        updateMieczniki();
+    },1000/30);
 }
-function Interval(){
-    setInterval(AddPerSec,INTERVAL);
+
+
+
+function Reset(){
+    mieczniki=0;
+    updateMieczniki();
+    mieczniki_per_click=0;
+    updateMPC();
+    mieczniki_per_second=0;
+    updateMPS();
+    zamojda.posiadani=0;
+    updateUczen(zamojda,zamojda_box);
+    maurycy.posiadani=0;
+    updateUczen(maurycy, maurycy_box);
+    giru.posiadani=0;
+    updateUczen(giru, giru_box);
+    dominik.posiadani=0;
+    updateUczen(dominik, dominik_box);
+    poskrobko.posiadani=0;
+    updateUczen(poskrobko, poskrobko_box);
+    pilot.posiadani=0;
+    updateArtifact(pilot,pilot_box);
+    haslo.posiadani=0;
+    updateArtifact(haslo,haslo_box);
+    wskazowka.posiadani=0;
+    updateArtifact(wskazowka,wskazowka_box);
+    sala.posiadani=0;
+    updateArtifact(sala,sala_box);
+    zaplecze.posiadani=0;
+    updateArtifact(zaplecze,zaplecze_box);
+    AddPerSec();
+}
+
+function AntiAutoClicker(){
+    setInterval(()=>{
+        if (clicks>11){
+            Reset();
+            clicks=0;
+        }
+        else{
+            console.log(clicks);
+            clicks=0;
+        }
+    },1000)
 }
 //============
 //eventy===================================================
 MainMiecznik.addEventListener('click',(event)=>{
+    clicks++;
     mieczniki+=mieczniki_per_click;
     updateMieczniki();
 });
@@ -162,6 +215,7 @@ pilot_but.addEventListener('click',(event)=>{
         updateMPS();
         mieczniki-=pilot.cost;
         updateMieczniki();
+        AddPerSec();
     }
 })
 haslo_but.addEventListener('click',(event)=>{
@@ -171,6 +225,7 @@ haslo_but.addEventListener('click',(event)=>{
         updateMPS();
         mieczniki-=haslo.cost;
         updateMieczniki();
+        AddPerSec();
     }
 })
 wskazowka_but.addEventListener('click',(event)=>{
@@ -180,6 +235,7 @@ wskazowka_but.addEventListener('click',(event)=>{
         updateMPS();
         mieczniki-=wskazowka.cost;
         updateMieczniki();
+        AddPerSec();
     }
 })
 sala_but.addEventListener('click',(event)=>{
@@ -189,6 +245,7 @@ sala_but.addEventListener('click',(event)=>{
         updateMPS();
         mieczniki-=sala.cost;
         updateMieczniki();
+        AddPerSec();
     }
 })
 zaplecze_but.addEventListener('click',(event)=>{
@@ -198,13 +255,14 @@ zaplecze_but.addEventListener('click',(event)=>{
         updateMPS();
         mieczniki-=zaplecze.cost;
         updateMieczniki();
+        AddPerSec();
     }
 })
 //koniec artefaktow
 //konieceventow================================================
 //update'ujące funkcje
 function updateMieczniki(){
-    farmed.innerHTML=mieczniki;
+    farmed.innerHTML=parseInt(mieczniki);
 }
 function updateMPC(){
     mieczniki_per_click=Uczen.MPC(zamojda,maurycy,dominik,giru,poskrobko);
@@ -220,6 +278,5 @@ function updateUczen(uczen, uczen_box){
 function updateArtifact(art, art_box){
     art_box.innerHTML="Posiadane: " +art.posiadani;
 }
-
+AntiAutoClicker();
 //koniec funkcji
-Interval();
